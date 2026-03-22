@@ -1,0 +1,26 @@
+# Core
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.0
+pydantic-settings==2.7.0
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+aiosqlite==0.20.0           # Dev/SQLite
+asyncpg==0.30.0             # Production/PostgreSQL
+alembic==1.14.0
+
+# HTTP client (for vendor API calls)
+httpx==0.28.1
+
+# Auth
+PyJWT==2.10.1
+
+# Encryption
+cryptography==44.0.0
+
+# Optional vendor SDKs (uncomment as needed):
+# azure-identity>=1.19.0
+# azure-mgmt-cognitiveservices>=13.5.0
+# google-cloud-iam>=2.16.0
+# google-cloud-resource-manager>=1.13.0

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="#f1f3f5"/>
+
+  <!-- Corner brackets -->
+  <path d="M148,148 L148,188" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+  <path d="M148,148 L188,148" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+
+  <path d="M364,148 L364,188" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+  <path d="M364,148 L324,148" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+
+  <path d="M148,364 L148,324" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+  <path d="M148,364 L188,364" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+
+  <path d="M364,364 L364,324" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+  <path d="M364,364 L324,364" stroke="#e85d04" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Crosshair lines -->
+  <line x1="210" y1="256" x2="236" y2="256" stroke="#e85d04" stroke-width="7" stroke-linecap="round"/>
+  <line x1="276" y1="256" x2="302" y2="256" stroke="#e85d04" stroke-width="7" stroke-linecap="round"/>
+  <line x1="256" y1="210" x2="256" y2="236" stroke="#e85d04" stroke-width="7" stroke-linecap="round"/>
+  <line x1="256" y1="276" x2="256" y2="302" stroke="#e85d04" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Center dot -->
+  <circle cx="256" cy="256" r="14" fill="#e85d04"/>
+</svg>

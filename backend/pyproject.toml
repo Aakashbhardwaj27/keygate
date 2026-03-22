@@ -1,0 +1,29 @@
+[project]
+name = "keygate"
+version = "0.1.0"
+description = "Open-source LLM API key management for teams"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "KeyGate Contributors" }]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "T20"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
