@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="KeyGate" width="80" />
+  <img src="docs/logo-light.svg" alt="KeyGate" width="80" />
 </p>
 
 <h1 align="center">KeyGate</h1>
