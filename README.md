@@ -69,7 +69,7 @@ OpenAI / Anthropic / Azure / Google  (direct, no proxy)
 ### Option 1: Docker (recommended)
 
 ```bash
-git clone https://github.com/your-org/keygate.git
+git clone https://github.com/Aakashbhardwaj27/keygate.git
 cd keygate
 cp .env.example .env        # Edit with your vendor admin keys
 docker compose up -d

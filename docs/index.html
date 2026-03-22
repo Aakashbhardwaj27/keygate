@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KeyGate - LLM API Key Management</title>
+<link rel="icon" href="./logo-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" href="./logo.svg" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --accent: #22d3ee;
+      --accent2: #818cf8;
+      --green: #4ade80;
+      --orange: #fb923c;
+      --red: #f87171;
+      --blue: #60a5fa;
+      --yellow: #fbbf24;
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --sidebar-w: 268px;
+      --toc-w: 210px;
+      --header-h: 60px;
+      --trans: 0.22s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+      --bg:#0b0f1a; --bg2:#111827; --bg3:#1a2235; --bg4:#1f2b40;
+      --surface:#1e2a3a; --surface2:#243044;
+      --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.13);
+      --text:#f1f5f9; --text2:#94a3b8; --text3:#64748b;
+      --header-bg:rgba(11,15,26,0.92); --sidebar-bg:#0e1422;
+      --code-bg:#0d1117; --shadow:0 4px 24px rgba(0,0,0,.5);
+    }
+    [data-theme="light"] {
+      --bg:#f8fafc; --bg2:#ffffff; --bg3:#f1f5f9; --bg4:#e2e8f0;
+      --surface:#ffffff; --surface2:#f8fafc;
+      --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.13);
+      --text:#0f172a; --text2:#475569; --text3:#94a3b8;
+      --header-bg:rgba(248,250,252,0.92); --sidebar-bg:#f1f5f9;
+      --code-bg:#1e293b; --shadow:0 4px 24px rgba(0,0,0,.08);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;font-size:15px;transition:background var(--trans),color var(--trans);overflow-x:hidden}
+    a{color:var(--accent);text-decoration:none}
+    ::selection{background:rgba(34,211,238,.25)}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+     
+    /* HEADER */
+    .hdr{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--header-h);background:var(--header-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;transition:background var(--trans)}
+    .hdr-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--text);flex-shrink:0;cursor:pointer}
+    .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;box-shadow:0 0 16px rgba(34,211,238,.35);flex-shrink:0}
+    .hdr-nav{display:flex;align-items:center;gap:2px;flex:1;padding-left:14px}
+    .hdr-nav a{font-size:13.5px;font-weight:500;color:var(--text2);padding:6px 12px;border-radius:6px;transition:all var(--trans);cursor:pointer}
+    .hdr-nav a:hover,.hdr-nav a.act{color:var(--text);background:var(--surface)}
+    .hdr-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+    .search-trigger{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--text3);cursor:pointer;min-width:175px;transition:border-color var(--trans)}
+    .search-trigger:hover{border-color:var(--accent)}
+    .search-trigger kbd{font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--text3)}
+    .btn-icon{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all var(--trans)}
+    .btn-icon:hover{color:var(--text);border-color:var(--accent);background:var(--surface2)}
+    .btn-cta{background:linear-gradient(135deg,#06b6d4,#818cf8);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity var(--trans),transform var(--trans)}
+    .btn-cta:hover{opacity:.9;transform:translateY(-1px)}
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+    .hamburger span{display:block;width:22px;height:2px;background:var(--text2);border-radius:2px;transition:all var(--trans)}
+     
+    /* LAYOUT */
+    .layout{display:flex;margin-top:var(--header-h);min-height:calc(100vh - var(--header-h))}
+     
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid var(--border);position:fixed;top:var(--header-h);left:0;height:calc(100vh - var(--header-h));overflow-y:auto;padding:14px 0 40px;z-index:150;transition:background var(--trans),transform var(--trans)}
+    .sidebar::-webkit-scrollbar{width:3px}
+    .sb-sec{padding:14px 16px 4px;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3)}
+    .sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-size:13px;font-weight:500;color:var(--text2);border-left:2px solid transparent;transition:all var(--trans);cursor:pointer}
+    .sb-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+    .sb-item.act{color:var(--accent);background:rgba(34,211,238,.07);border-left-color:var(--accent)}
+    .mtag{font-family:var(--mono);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0}
+    .mg{background:rgba(74,222,128,.15);color:var(--green)}
+    .mp{background:rgba(96,165,250,.15);color:var(--blue)}
+    .md2{background:rgba(248,113,113,.15);color:var(--red)}
+     
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;min-width:0}
+     
+    /* PAGES */
+    .page{display:none}.page.act{display:block}
+     
+    /* HERO */
+    .hero{position:relative;overflow:hidden;padding:80px 60px 70px;border-bottom:1px solid var(--border)}
+    .hero-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 80% at 50% 0%,black 40%,transparent 100%)}
+    .hero-glow{position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(34,211,238,.15) 0%,transparent 70%);pointer-events:none}
+    .hero-inner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:48px}
+    .hero-left{flex:1;min-width:0}
+    .hero-right{flex-shrink:0;display:flex;align-items:center;justify-content:center;animation:fu .5s .4s ease both}
+    .hero-logo-visual{width:320px;height:300px;position:relative;display:flex;align-items:center;justify-content:center}
+    .hlv-ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(34,211,238,.18);animation:spin 18s linear infinite}
+    .hlv-ring2{position:absolute;inset:18px;border-radius:50%;border:1px dashed rgba(129,140,248,.15);animation:spin 12s linear infinite reverse}
+    .hlv-ring3{position:absolute;inset:36px;border-radius:50%;border:1px solid rgba(34,211,238,.08);animation:spin 24s linear infinite}
+    .hlv-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);top:50%;left:50%;transform:translate(-50%,-110px)}
+    .hlv-dot2{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 6px var(--accent2);top:50%;left:50%;transform:translate(85px,-50%)}
+    .hlv-dot3{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);top:50%;left:50%;transform:translate(-50px,80px)}
+    .hlv-core{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,rgba(34,211,238,.15),rgba(129,140,248,.15));border:1px solid rgba(34,211,238,.3);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(34,211,238,.15),inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(8px);position:relative;z-index:1}
+    .hlv-k{font-size:38px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-family:var(--font)}
+    .hlv-badge{position:absolute;background:var(--surface);border:1px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:10px;font-weight:600;padding:4px 8px;white-space:nowrap;color:var(--text2);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+    .hlv-b1{top:8px;right:-10px;color:var(--green);border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.07)}
+    .hlv-b2{bottom:20px;right:-18px;color:var(--blue);border-color:rgba(96,165,250,.25);background:rgba(96,165,250,.07)}
+    .hlv-b3{bottom:10px;left:-14px;color:var(--accent2);border-color:rgba(129,140,248,.25);background:rgba(129,140,248,.07)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);color:var(--accent);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;margin-bottom:24px;animation:fu .5s ease both}
+    .dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+    @keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .hero h1{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:20px;animation:fu .5s .1s ease both}
+    .grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-desc{font-size:17px;color:var(--text2);max-width:520px;margin-bottom:36px;line-height:1.7;animation:fu .5s .18s ease both}
+    .hero-acts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:fu .5s .26s ease both}
+    .btn-lg{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all var(--trans)}
+    .btn-lg.pri{background:linear-gradient(135deg,#06b6d4,#818cf8);color:#fff;box-shadow:0 4px 20px rgba(34,211,238,.3)}
+    .btn-lg.pri:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(34,211,238,.4)}
+    .btn-lg.sec{background:var(--surface);color:var(--text);border:1px solid var(--border2)}
+    .btn-lg.sec:hover{border-color:var(--accent)}
+    .hero-stats{display:flex;gap:40px;margin-top:50px;flex-wrap:wrap;animation:fu .5s .34s ease both}
+    .hstat .num{font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--text),var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hstat .lbl{font-size:12px;color:var(--text3);font-weight:500;margin-top:2px}
+    @media(max-width:900px){.hero-right{display:none}}
+    @media(max-width:768px){.hero-inner{flex-direction:column}.hero-right{display:none}}
+     
+    /* SECTIONS */
+    .sec{padding:60px;border-bottom:1px solid var(--border)}
+    .sec-title{font-size:26px;font-weight:700;letter-spacing:-.5px;margin-bottom:8px}
+    .sec-sub{color:var(--text2);font-size:15px;margin-bottom:36px}
+     
+    /* FEATURE GRID */
+    .feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:16px}
+    .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:all var(--trans);position:relative;overflow:hidden}
+    .feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity var(--trans)}
+    .feat-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:var(--shadow)}
+    .feat-card:hover::before{opacity:1}
+    .fi{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+    .feat-card h3{font-size:14.5px;font-weight:700;margin-bottom:6px}
+    .feat-card p{font-size:13px;color:var(--text2);line-height:1.6}
+     
+    /* TABLE */
+    .tbl{width:100%;border-collapse:collapse;font-size:14px}
+    .tbl thead tr{background:var(--bg3)}
+    .tbl th{padding:13px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+    .tbl td{padding:13px 18px;border-bottom:1px solid var(--border);color:var(--text2)}
+    .tbl tbody tr{background:var(--surface);transition:background var(--trans)}
+    .tbl tbody tr:hover{background:var(--surface2)}
+    .tbl tbody tr:last-child td{border-bottom:none}
+    .tbl .vname{font-weight:600;color:var(--text)}
+    .vbadge{display:inline-block;background:rgba(34,211,238,.1);color:var(--accent);border:1px solid rgba(34,211,238,.2);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+     
+    /* FLOW */
+    .flow{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;font-family:var(--mono);font-size:13px;line-height:1.9;color:var(--text2);overflow-x:auto}
+    .fc{color:var(--text3);font-style:italic}.fs{color:var(--accent);font-weight:700}.fa{color:var(--green)}.fn{color:var(--accent2)}
+     
+    /* DOC LAYOUT */
+    .doc-wrap{display:flex;min-height:calc(100vh - var(--header-h))}
+    .doc-body{flex:1;min-width:0;padding:40px 48px 80px;}
+    .doc-toc{width:var(--toc-w);flex-shrink:0;position:sticky;top:calc(var(--header-h) + 20px);height:calc(100vh - var(--header-h) - 40px);overflow-y:auto;padding:40px 20px 40px}
+    .doc-toc-title{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+    .doc-toc a{display:block;font-size:12.5px;color:var(--text2);padding:4px 0 4px 10px;border-left:2px solid transparent;line-height:1.5;transition:all var(--trans)}
+    .doc-toc a:hover,.doc-toc a.act{color:var(--accent);border-left-color:var(--accent)}
+     
+    /* ARTICLE */
+    .art h1{font-size:30px;font-weight:800;letter-spacing:-.8px;margin-bottom:8px}
+    .art .lead{font-size:15px;color:var(--text2);margin-bottom:32px;padding-bottom:28px;border-bottom:1px solid var(--border)}
+    .art h2{font-size:20px;font-weight:700;margin:44px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);scroll-margin-top:80px}
+    .art h3{font-size:15px;font-weight:700;margin:24px 0 10px;scroll-margin-top:80px}
+    .art p{font-size:14.5px;color:var(--text2);margin-bottom:14px;line-height:1.75}
+    :not(pre)>code{font-family:var(--mono);font-size:12.5px;background:var(--bg3);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:1px 6px}
+     
+    /* CODE BLOCK */
+    .cb{margin:14px 0;border-radius:var(--radius);overflow:hidden}
+    .cb-hd{display:flex;align-items:center;justify-content:space-between;background:#161d2e;padding:9px 14px}
+    .cb-lang{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+    .cb-copy{font-family:var(--font);font-size:11px;font-weight:600;color:var(--text3);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:3px 10px;cursor:pointer;transition:all var(--trans)}
+    .cb-copy:hover{color:var(--accent);border-color:var(--accent)}
+    .cb-copy.ok{color:var(--green);border-color:var(--green)}
+    .cb pre{background:var(--code-bg);margin:0;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7;color:#e2e8f0}
+     
+    /* ADMONITION */
+    .adm{border-left:3px solid;border-radius:var(--radius);padding:14px 16px;margin:18px 0;font-size:13.5px}
+    .adm-i{border-color:var(--blue);background:rgba(96,165,250,.07)}
+    .adm-t{border-color:var(--green);background:rgba(74,222,128,.07)}
+    .adm-w{border-color:var(--orange);background:rgba(251,146,60,.07)}
+    .adm-d{border-color:var(--red);background:rgba(248,113,113,.07)}
+    .adm-title{font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+    .adm-i .adm-title{color:var(--blue)}.adm-t .adm-title{color:var(--green)}.adm-w .adm-title{color:var(--orange)}.adm-d .adm-title{color:var(--red)}
+    .adm p{margin:0;color:var(--text2)}
+     
+    /* ENDPOINT */
+    .ep{border:1px solid var(--border);border-radius:var(--radius-lg);margin:22px 0;overflow:hidden;transition:box-shadow var(--trans)}
+    .ep:hover{box-shadow:var(--shadow)}
+    .ep-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;background:var(--surface);border-bottom:1px solid transparent;user-select:none;transition:background var(--trans)}
+    .ep-hd:hover{background:var(--surface2)}
+    .ep.open .ep-hd{border-bottom-color:var(--border)}
+    .ep-m{font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;flex-shrink:0;min-width:58px;text-align:center}
+    .em-g{background:rgba(74,222,128,.15);color:var(--green)}
+    .em-p{background:rgba(96,165,250,.15);color:var(--blue)}
+    .em-d{background:rgba(248,113,113,.15);color:var(--red)}
+    .ep-path{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);flex:1}
+    .ep-sum{font-size:13px;color:var(--text2)}
+    .ep-arr{color:var(--text3);font-size:11px;transition:transform var(--trans)}
+    .ep.open .ep-arr{transform:rotate(180deg)}
+    .ep-body{display:none;padding:22px;background:var(--bg2)}
+    .ep.open .ep-body{display:block}
+     
+    /* TABS */
+    .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .tab{padding:9px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--trans)}
+    .tab.act{color:var(--accent);border-bottom-color:var(--accent)}
+    .tab-p{display:none}.tab-p.act{display:block}
+     
+    /* PARAMS */
+    .params{margin:12px 0}
+    .param{display:grid;grid-template-columns:175px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+    .param:last-child{border-bottom:none}
+    .pname{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:600}
+    .preq{font-size:9.5px;font-weight:700;color:var(--red);text-transform:uppercase;margin-left:5px}
+    .ptype{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+    .pdesc{color:var(--text2);line-height:1.55}
+     
+    /* RESP CODES */
+    .rcodes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .rc{font-family:var(--mono);font-size:12px;font-weight:700;padding:3px 10px;border-radius:5px}
+    .r2{background:rgba(74,222,128,.12);color:var(--green)}
+    .r4{background:rgba(248,113,113,.12);color:var(--red)}
+     
+    /* GUIDE */
+    .guide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .gc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;cursor:pointer;transition:all var(--trans);display:block;color:var(--text)}
+    .gc:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+    .gc-icon{font-size:28px;margin-bottom:12px}
+    .gc h3{font-size:15px;font-weight:700;margin-bottom:6px}
+    .gc p{font-size:13px;color:var(--text2);line-height:1.6}
+    .gc-tag{display:inline-block;margin-top:12px;font-size:11px;font-weight:600;color:var(--accent);background:rgba(34,211,238,.1);padding:2px 8px;border-radius:4px}
+    .steps{}
+    .step-item{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid var(--border)}
+    .step-item:last-child{border-bottom:none}
+    .snum{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+    .sbody{flex:1;width:"100%"}
+    .sbody h4{font-size:15px;font-weight:700;margin-bottom:4px}
+    .sbody p{font-size:13.5px;color:var(--text2);line-height:1.6}
+     
+    /* CHANGELOG */
+    .cl-item{display:flex;gap:24px;padding:28px 0;border-bottom:1px solid var(--border)}
+    .cl-item:last-child{border-bottom:none}
+    .cl-date{flex-shrink:0;width:100px}
+    .cl-ver{font-size:13px;font-weight:700;background:rgba(34,211,238,.1);color:var(--accent);border:1px solid rgba(34,211,238,.2);padding:3px 10px;border-radius:5px;display:inline-block;margin-bottom:4px}
+    .cl-d{font-size:12px;color:var(--text3)}
+    .cl-body h4{font-size:15px;font-weight:700;margin-bottom:10px}
+    .clt{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:5px;margin-bottom:4px}
+    .cln{background:rgba(74,222,128,.12);color:var(--green)}
+    .clf{background:rgba(96,165,250,.12);color:var(--blue)}
+     
+    /* FOOTER */
+    .footer{margin-left:var(--sidebar-w);border-top:1px solid var(--border);background:var(--bg2);padding:32px 60px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;transition:background var(--trans)}
+    .fb-logo{font-size:18px;font-weight:800;margin-bottom:10px}
+    .fb p{font-size:13px;color:var(--text2);line-height:1.6}
+    .fc-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:12px}
+    .fc-col a{display:block;font-size:13px;color:var(--text2);margin-bottom:7px;transition:color var(--trans)}
+    .fc-col a:hover{color:var(--accent)}
+    .footer-bot{margin-left:var(--sidebar-w);border-top:1px solid var(--border);background:var(--bg2);padding:16px 60px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text3);transition:background var(--trans)}
+     
+    /* OVERLAY & SEARCH */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:140}
+    .overlay.show{display:block}
+    .smodal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;padding-top:80px}
+    .smodal.show{display:flex}
+    .sbox{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);width:100%;max-width:580px;box-shadow:0 8px 48px rgba(0,0,0,.7);overflow:hidden}
+    .sinput{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+    .sinput input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:16px;color:var(--text)}
+    .sinput input::placeholder{color:var(--text3)}
+    .sresults{max-height:360px;overflow-y:auto}
+    .sri{padding:12px 20px;cursor:pointer;transition:background var(--trans);border-bottom:1px solid var(--border)}
+    .sri:hover{background:var(--surface2)}
+    .sri:last-child{border-bottom:none}
+    .sri-t{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+    .sri-p{font-family:var(--mono);font-size:11.5px;color:var(--text3)}
+     
+    /* SYNTAX */
+    .tk{color:#7dd3fc}.ts{color:#86efac}.tn{color:#fda4af}.tb{color:#c4b5fd}.tc{color:#475569;font-style:italic}.tkw{color:#22d3ee}.tu{color:#fde68a}.tf{color:#fca5a5}
+     
+    /* BADGE */
+    .badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+    .ba{background:rgba(34,211,238,.12);color:var(--accent);border:1px solid rgba(34,211,238,.2)}
+    .bg{background:rgba(74,222,128,.12);color:var(--green)}
+     
+    /* PROBLEM/SOLUTION */
+    .ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+    .check-list{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+    .check-item{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text2)}
+     
+    /* RESPONSIVE */
+    @media(max-width:1100px){.doc-toc{display:none}.doc-body{max-width:100%}}
+    @media(max-width:900px){.footer{grid-template-columns:1fr 1fr;margin-left:0;padding:24px}.footer-bot{margin-left:0;padding:14px 24px}.ps-grid{grid-template-columns:1fr}}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}
+      .hero{padding:40px 20px 50px}
+      .sec{padding:40px 20px}
+      .doc-body{padding:28px 20px 60px}
+      .footer{grid-template-columns:1fr;padding:24px 20px}
+      .footer-bot{flex-direction:column;gap:8px;text-align:center}
+      .hdr-nav{display:none}
+      .hamburger{display:flex}
+      .hero-stats{gap:24px}
+      .param{grid-template-columns:1fr;gap:4px}
+      .search-trigger{min-width:120px}
+      .hdr-right .btn-cta{display:none}
+    }
+    @media(max-width:480px){
+      .hero h1{font-size:28px}
+      .hero-acts{flex-direction:column;align-items:flex-start}
+      .smodal{padding-top:20px}
+      .sbox{margin:0 12px}
+      .hero-stats{gap:20px}
+    }
+
+    .hiw-wrap{display:flex;flex-direction:column;gap:0;}
+    .hiw-step{display:flex;flex-direction:column;gap:10px}
+    .hiw-step-head{display:flex;align-items:center;gap:10px}
+    .hiw-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .hiw-step-label{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:.1px}
+    .hiw-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:border-color var(--trans)}
+    .hiw-card:hover{border-color:var(--border2)}
+    .hiw-card-expanded{align-items:flex-start}
+    .hiw-card-final{border-color:rgba(34,211,238,.2);background:rgba(34,211,238,.04)}
+    .hiw-card-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+    .hiw-card-title{font-size:14.5px;font-weight:700;margin-bottom:4px}
+    .hiw-card-desc{font-size:13.5px;color:var(--text2);line-height:1.6}
+    .hiw-sub-steps{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .hiw-sub{display:flex;align-items:baseline;gap:7px;font-size:13px;color:var(--text2);line-height:1.5;flex-wrap:wrap}
+    .hiw-sub-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+    .hiw-sub-label{font-weight:700;color:var(--text);flex-shrink:0}
+    .hiw-sub code{font-family:var(--mono);font-size:11.5px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:1px 6px;color:var(--accent)}
+    .hiw-sub-result{font-size:12px;color:var(--text3);font-style:italic}
+    .hiw-once-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25);border-radius:4px;padding:1px 7px;margin-left:4px;font-style:normal}
+    .hiw-arrow{font-size:20px;color:var(--border2);text-align:left;padding:4px 0 4px 9px;line-height:1}
+    .hiw-code-pill{display:inline-flex;align-items:center;gap:0;font-family:var(--mono);font-size:12.5px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text2);flex-wrap:wrap;gap:4px}
+    .hiw-zero-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25);border-radius:4px;padding:1px 7px;margin-left:8px;font-family:var(--font)}
+    .gh-link { display: flex; align-items: center; gap: 6px; color: var(--md-text-secondary); text-decoration: none; font-size: 0.82rem; transition: color 0.15s; }
+    .gh-link:hover { color: var(--md-text); }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo" onclick="showPage('home')">
+    <div class="logo-icon"><img class="theme-logo"  src="./logo.svg" /></div>
+    <span>KeyGate</span>
+  </div>
+  <nav class="hdr-nav">
+    <a onclick="showPage('home')" class="act" id="nav-home">Home</a>
+    <a onclick="showPage('docs')" id="nav-docs">API Docs</a>
+    <a onclick="showPage('guide')" id="nav-guide">Guide</a>
+    <a onclick="showPage('changelog')" id="nav-changelog">Changelog</a>
+  </nav>
+  <div class="hdr-right">
+    <div class="search-trigger" onclick="openSearch()">
+      <span>⌕</span>
+      <span style="flex:1;color:var(--text3)">Search…</span>
+      <kbd>⌘K</kbd>
+    </div>
+    <button class="btn-icon" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <a href="https://github.com/Aakashbhardwaj27/keygate" target="_blank" class="gh-link">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+
+     
+    <div class="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-sec">Navigation</div>
+  <div class="sb-item act" onclick="showPage('home')">🏠 Overview</div>
+  <div class="sb-item" onclick="showPage('guide')">🚀 Quick Start</div>
+  <div class="sb-item" onclick="showPage('guide')">⚙️ Configuration</div>
+  <div class="sb-item" onclick="showPage('guide')">☁️ Deployment</div>
+
+  <div class="sb-sec">API Reference</div>
+  <div class="sb-item" onclick="navDoc('auth-sec')">🔐 Authentication</div>
+  <div class="sb-item" onclick="navDoc('sec-auth')"><span class="mtag mp">POST</span>/auth/login</div>
+  <div class="sb-item" onclick="navDoc('sec-vendors')"><span class="mtag mp">POST</span>/vendors/configure</div>
+  <div class="sb-item" onclick="navDoc('sec-vendors')"><span class="mtag mg">GET</span>&nbsp;/vendors</div>
+  <div class="sb-item" onclick="navDoc('sec-devs')"><span class="mtag mp">POST</span>/developers</div>
+  <div class="sb-item" onclick="navDoc('sec-devs')"><span class="mtag mg">GET</span>&nbsp;/developers</div>
+  <div class="sb-item" onclick="navDoc('sec-devs')"><span class="mtag md2">DEL</span>&nbsp;/developers/{id}</div>
+  <div class="sb-item" onclick="navDoc('sec-keys')"><span class="mtag mp">POST</span>/keys/provision</div>
+  <div class="sb-item" onclick="navDoc('sec-keys')"><span class="mtag mg">GET</span>&nbsp;/keys</div>
+  <div class="sb-item" onclick="navDoc('sec-keys')"><span class="mtag mp">POST</span>/keys/{id}/revoke</div>
+  <div class="sb-item" onclick="navDoc('sec-keys')"><span class="mtag mp">POST</span>/keys/{id}/rotate</div>
+  <div class="sb-item" onclick="navDoc('sec-audit')"><span class="mtag mg">GET</span>&nbsp;/audit</div>
+  <div class="sb-item" onclick="navDoc('sec-health')"><span class="mtag mg">GET</span>&nbsp;/health</div>
+
+  <div class="sb-sec">Resources</div>
+  <div class="sb-item" onclick="showPage('changelog')">📋 Changelog</div>
+  <div class="sb-item">💬 GitHub Discussions</div>
+  <div class="sb-item">🐛 Report Issue</div>
+</nav>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- LAYOUT -->
+<div class="layout">
+<main class="main">
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━
+     HOME PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page act" id="page-home">
+
+
+
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="hero-badge"><span class="dot"></span>Open Source · Apache 2.0 · v0.1.0</div>
+        <h1>LLM API key management<br/>for <span class="grad">modern teams</span></h1>
+        <p class="hero-desc">Provision scoped, trackable, revocable vendor API keys — without a proxy. One leaked key used to mean full org exposure. Not anymore.</p>
+        <div class="hero-acts">
+          <button class="btn-lg pri" onclick="showPage('guide')">⚡ Quick Start</button>
+          <!-- <button class="btn-lg sec" onclick="showPage('docs')">📖 API Reference</button>
+          <button class="btn-lg sec">⭐ GitHub</button> -->
+        </div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="num">4</div><div class="lbl">Vendors Supported</div></div>
+          <div class="hstat"><div class="num">0ms</div><div class="lbl">Added Latency</div></div>
+          <div class="hstat"><div class="num">100%</div><div class="lbl">Audit Coverage</div></div>
+          <div class="hstat"><div class="num">1 cmd</div><div class="lbl">Docker Deploy</div></div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-logo-visual">
+          <div class="hlv-ring"></div>
+          <div class="hlv-ring2"></div>
+          <div class="hlv-ring3"></div>
+          <div class="hlv-dot"></div>
+          <div class="hlv-dot2"></div>
+          <div class="hlv-dot3"></div>
+          <div class="hlv-core">
+            <img src="./logo.svg" style="width:150px;height:150px;object-fit:contain;" class="theme-logo"  />
+          </div>
+          <div class="hlv-badge hlv-b1">✓ key.provision</div>
+          <div class="hlv-badge hlv-b2">sk-proj-...7xKm</div>
+          <div class="hlv-badge hlv-b3">audit logged</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem / Solution -->
+  <section class="sec">
+    <div class="ps-grid">
+      <div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--red);margin-bottom:12px">The Problem</div>
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:14px;border:none;padding:0">One shared key = full org exposure</h2>
+        <p style="color:var(--text2);line-height:1.7">Your org has one OpenAI key shared across 100+ developers. No audit trail, no per-developer budgets, no way to revoke one person without rotating for everyone.</p>
+        <div class="check-list">
+          <div class="check-item"><span style="color:var(--red);font-weight:700;font-size:16px">✗</span> No per-developer visibility</div>
+          <div class="check-item"><span style="color:var(--red);font-weight:700;font-size:16px">✗</span> Can't revoke individual access</div>
+          <div class="check-item"><span style="color:var(--red);font-weight:700;font-size:16px">✗</span> No budget controls per user</div>
+          <div class="check-item"><span style="color:var(--red);font-weight:700;font-size:16px">✗</span> No audit trail of key usage</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:12px">The Solution</div>
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:14px;border:none;padding:0">Real keys, scoped per developer</h2>
+        <p style="color:var(--text2);line-height:1.7">KeyGate uses vendor Admin APIs to create scoped projects/workspaces per developer and issue real API keys. Developers talk directly to the vendor — no proxy, no latency, no SDK changes.</p>
+        <div class="check-list">
+          <div class="check-item"><span style="color:var(--green);font-weight:700;font-size:16px">✓</span> Per-developer scoped API keys</div>
+          <div class="check-item"><span style="color:var(--green);font-weight:700;font-size:16px">✓</span> Instant revocation at vendor level</div>
+          <div class="check-item"><span style="color:var(--green);font-weight:700;font-size:16px">✓</span> Budget caps enforced by vendor</div>
+          <div class="check-item"><span style="color:var(--green);font-weight:700;font-size:16px">✓</span> Full audit log with actor & time</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="sec">
+    <div class="sec-title">Everything you need</div>
+    <div class="sec-sub">Production-ready key management with zero configuration overhead.</div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="fi" style="background:rgba(34,211,238,.1)">🔑</div><h3>Real Vendor Keys</h3><p>Not proxy tokens. Developers use real keys directly with vendor SDKs — no SDK changes, no added latency.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(74,222,128,.1)">👥</div><h3>Per-Developer Scoping</h3><p>Each key lives in its own vendor project or workspace, perfectly isolated from other team members.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(251,191,36,.1)">💰</div><h3>Budget Controls</h3><p>Set per-developer USD spending limits enforced at the vendor level. No surprise bills ever.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(129,140,248,.1)">⏱️</div><h3>Rate Limiting</h3><p>Per-key RPM limits enforced by the vendor. Protect shared quotas from runaway scripts.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(96,165,250,.1)">🔄</div><h3>Key Rotation</h3><p>One-click rotate: revoke old, provision new for the same developer. Zero downtime handoff.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(248,113,113,.1)">📋</div><h3>Audit Log</h3><p>Every provision, revoke, rotate, and config change is immutably logged with actor and timestamp.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(34,211,238,.1)">🏢</div><h3>Multi-Vendor</h3><p>OpenAI, Anthropic, Azure OpenAI, Google Vertex AI — all from one unified dashboard.</p></div>
+      <div class="feat-card"><div class="fi" style="background:rgba(74,222,128,.1)">🐳</div><h3>Docker-Ready</h3><p>One command to run the full stack in production. Deploy to AWS, GCP, Azure, or Kubernetes.</p></div>
+    </div>
+  </section>
+
+  <!-- Vendors -->
+  <section class="sec">
+    <div class="sec-title">Supported Vendors</div>
+    <div class="sec-sub">KeyGate's vendor system is extensible — add custom vendors with a single class.</div>
+    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Vendor</th><th>Mechanism</th><th>What's Created</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="vname">🤖 OpenAI</td><td>Project + Service Account per developer</td><td><code>sk-proj-...</code> API key</td><td><span class="vbadge">Supported</span></td></tr>
+          <tr><td class="vname">🧠 Anthropic</td><td>Workspace + API Key per developer</td><td>Workspace-scoped API key</td><td><span class="vbadge">Supported</span></td></tr>
+          <tr><td class="vname">☁️ Azure OpenAI</td><td>Cognitive Services resource per developer</td><td>Unique endpoint + Key1</td><td><span class="vbadge">Supported</span></td></tr>
+          <tr><td class="vname">🔵 Google Vertex</td><td>Service Account + IAM binding per developer</td><td>JSON credentials file</td><td><span class="vbadge">Supported</span></td></tr>
+          <tr><td style="color:var(--text3)">+ Custom</td><td style="color:var(--text3)">Implement BaseVendorProvisioner</td><td style="color:var(--text3)">Any key format</td><td style="font-size:11px;color:var(--text3)">Extensible</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="sec">
+    <div class="sec-title">How it works</div>
+    <div class="sec-sub">KeyGate is only involved at key lifecycle time — zero added latency at inference.</div>
+ 
+    <div class="hiw-wrap">
+ 
+      <!-- Step 1 -->
+      <div class="hiw-step">
+        <div class="hiw-step-head">
+          <div class="hiw-num">1</div>
+          <div class="hiw-step-label">Admin triggers provisioning</div>
+        </div>
+        <div class="hiw-card">
+          <div class="hiw-card-icon">🖱️</div>
+          <div class="hiw-card-body">
+            <div class="hiw-card-title">Provision Key</div>
+            <div class="hiw-card-desc">Admin selects <strong>User</strong> + vendor <strong>OpenAI</strong> in the dashboard and clicks Provision.</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="hiw-arrow">↓</div>
+ 
+      <!-- Step 2 -->
+      <div class="hiw-step">
+        <div class="hiw-step-head">
+          <div class="hiw-num">2</div>
+          <div class="hiw-step-label">KeyGate orchestrates vendor API calls</div>
+        </div>
+        <div class="hiw-card hiw-card-expanded">
+          <div class="hiw-card-icon">⚙️</div>
+          <div class="hiw-card-body" style="width:100%">
+            <div class="hiw-card-title">KeyGate Backend</div>
+            <div class="hiw-sub-steps">
+              <div class="hiw-sub"><span class="hiw-sub-dot" style="background:var(--green)"></span><span class="hiw-sub-label">Validates</span> developer exists and is active</div>
+              <div class="hiw-sub"><span class="hiw-sub-dot" style="background:var(--blue)"></span><span class="hiw-sub-label">Loads</span> encrypted OpenAI admin credentials</div>
+              <div class="hiw-sub">
+                <span class="hiw-sub-dot" style="background:var(--accent)"></span>
+                <span class="hiw-sub-label">POST</span>
+                <code>/v1/organization/projects</code>
+                <span class="hiw-sub-result">→ <em>"keygate-ml-user-a3f2c1"</em></span>
+              </div>
+              <div class="hiw-sub">
+                <span class="hiw-sub-dot" style="background:var(--accent)"></span>
+                <span class="hiw-sub-label">POST</span>
+                <code>/projects/{id}/service_accounts</code>
+                <span class="hiw-sub-result">→ real API key generated</span>
+              </div>
+              <div class="hiw-sub"><span class="hiw-sub-dot" style="background:var(--orange)"></span><span class="hiw-sub-label">Stores</span> only metadata — hint, budget, expiry. Never the full key.</div>
+              <div class="hiw-sub"><span class="hiw-sub-dot" style="background:var(--accent2)"></span><span class="hiw-sub-label">Returns</span> real key to admin <span class="hiw-once-badge">shown once</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="hiw-arrow">↓</div>
+ 
+      <!-- Step 3 -->
+      <div class="hiw-step">
+        <div class="hiw-step-head">
+          <div class="hiw-num">3</div>
+          <div class="hiw-step-label">Admin shares key with developer</div>
+        </div>
+        <div class="hiw-card">
+          <div class="hiw-card-icon">📤</div>
+          <div class="hiw-card-body">
+            <div class="hiw-card-title">Secure Handoff</div>
+            <div class="hiw-card-desc">Admin securely delivers the key to User via your preferred channel.</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="hiw-arrow">↓</div>
+ 
+      <!-- Step 4 -->
+      <div class="hiw-step">
+        <div class="hiw-step-head">
+          <div class="hiw-num">4</div>
+          <div class="hiw-step-label">Developer uses key directly — no proxy</div>
+        </div>
+        <div class="hiw-card hiw-card-final">
+          <div class="hiw-card-icon">🚀</div>
+          <div class="hiw-card-body">
+            <div class="hiw-card-title">Direct to OpenAI</div>
+            <div class="hiw-card-desc" style="margin-bottom:10px">User sets the key in her SDK. Traffic goes straight to OpenAI — KeyGate is not in the request path.</div>
+            <div class="hiw-code-pill"><span style="color:var(--accent2)">openai</span><span style="color:var(--text3)">.api_key = </span><span style="color:var(--green)">"sk-proj-..."</span><span class="hiw-zero-badge">0ms overhead</span></div>
+          </div>
+        </div>
+      </div>
+ 
+    </div>
+  </section>
+
+</div><!-- /page-home -->
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━
+     API DOCS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page" id="page-docs">
+  <div class="doc-wrap">
+    <div class="doc-body">
+      <div class="art">
+
+        <h1>API Reference</h1>
+        <p class="lead">Base URL: <code>http://localhost:8000</code> &nbsp;·&nbsp; Swagger: <code>/docs</code> &nbsp;·&nbsp; ReDoc: <code>/redoc</code></p>
+
+        <h2 id="auth-sec">Authentication</h2>
+        <div class="adm adm-i"><div class="adm-title">🔒 Bearer Token Required</div><p>All endpoints except <code>/health</code> and <code>/api/v1/auth/login</code> require a JWT bearer token in the <code>Authorization</code> header.</p></div>
+        <div class="cb"><div class="cb-hd"><span class="cb-lang">bash</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code><span class="tc"># Get a token</span>
+<span class="tkw">curl</span> <span class="tf">-X POST</span> <span class="tu">http://localhost:8000/api/v1/auth/login</span> \
+  <span class="tf">-H</span> <span class="ts">"Content-Type: application/json"</span> \
+  <span class="tf">-d</span> <span class="ts">'{"email": "admin@keygate.dev", "password": "changeme"}'</span>
+
+<span class="tc"># Use the token</span>
+<span class="tkw">curl</span> <span class="tf">-H</span> <span class="ts">"Authorization: Bearer &lt;token&gt;"</span> <span class="tu">http://localhost:8000/api/v1/developers</span></code></pre></div>
+
+        <h2 id="sec-auth">Auth</h2>
+        <div class="ep open" id="ep1">
+          <div class="ep-hd" onclick="toggleEp(this)">
+            <span class="ep-m em-p">POST</span>
+            <span class="ep-path">/api/v1/auth/login</span>
+            <span class="ep-sum">Get JWT access token</span>
+            <span class="ep-arr">▾</span>
+          </div>
+          <div class="ep-body">
+            <p>Authenticate with email and password to receive a JWT bearer token.</p>
+            <h3>Request Body</h3>
+            <div class="params">
+              <div class="param"><div><div class="pname">email<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc">Admin account email address.</div></div>
+              <div class="param"><div><div class="pname">password<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc">Admin account password.</div></div>
+            </div>
+            <div class="tabs"><div class="tab act" onclick="stab(this,'a1','req')">Request</div><div class="tab" onclick="stab(this,'a1','res')">Response 200</div></div>
+            <div class="tab-p act" id="a1-req"><div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{ <span class="tk">"email"</span>: <span class="ts">"admin@keygate.dev"</span>, <span class="tk">"password"</span>: <span class="ts">"changeme"</span> }</code></pre></div></div>
+            <div class="tab-p" id="a1-res"><div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{ <span class="tk">"access_token"</span>: <span class="ts">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>, <span class="tk">"token_type"</span>: <span class="ts">"bearer"</span> }</code></pre></div></div>
+            <div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div>
+          </div>
+        </div>
+
+        <h2 id="sec-vendors">Vendors</h2>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-p">POST</span><span class="ep-path">/api/v1/vendors/configure</span><span class="ep-sum">Store vendor admin credentials</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <p>Store or update admin API credentials for a vendor. Credentials are encrypted at rest.</p>
+            <div class="adm adm-t"><div class="adm-title">✅ Supported vendors</div><p><code>openai</code>, <code>anthropic</code>, <code>azure_openai</code>, <code>google_vertex</code></p></div>
+            <h3>Request Body</h3>
+            <div class="params">
+              <div class="param"><div><div class="pname">vendor<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc">Vendor identifier.</div></div>
+              <div class="param"><div><div class="pname">admin_api_key<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc">Organization-level admin API key from the vendor console.</div></div>
+              <div class="param"><div><div class="pname">org_id</div><div class="ptype">string | null</div></div><div class="pdesc">Organization ID (e.g., <code>org-...</code> for OpenAI).</div></div>
+              <div class="param"><div><div class="pname">extra_config</div><div class="ptype">object | null</div></div><div class="pdesc">Additional vendor-specific configuration.</div></div>
+            </div>
+            <div class="tabs"><div class="tab act" onclick="stab(this,'v1','req')">Request</div></div>
+            <div class="tab-p act" id="v1-req"><div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{
+  <span class="tk">"vendor"</span>: <span class="ts">"openai"</span>,
+  <span class="tk">"admin_api_key"</span>: <span class="ts">"sk-admin-abc123..."</span>,
+  <span class="tk">"org_id"</span>: <span class="ts">"org-XXXXXXXX"</span>
+}</code></pre></div></div>
+            <div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div>
+          </div>
+        </div>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-g">GET</span><span class="ep-path">/api/v1/vendors</span><span class="ep-sum">List configured vendors (keys masked)</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body"><p>Returns all configured vendors. Admin keys are masked — only a hint is returned.</p><div class="rcodes"><span class="rc r2">200 OK</span></div></div>
+        </div>
+
+        <h2 id="sec-devs">Developers</h2>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-p">POST</span><span class="ep-path">/api/v1/developers</span><span class="ep-sum">Register a new developer</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <div class="params">
+              <div class="param"><div><div class="pname">name<span class="preq">required</span></div><div class="ptype">string (1–255)</div></div><div class="pdesc">Developer's full name.</div></div>
+              <div class="param"><div><div class="pname">email<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc">Developer email address.</div></div>
+              <div class="param"><div><div class="pname">team</div><div class="ptype">string</div></div><div class="pdesc">Team name for grouping. Default: <code>"default"</code>.</div></div>
+              <div class="param"><div><div class="pname">role</div><div class="ptype">string</div></div><div class="pdesc">Organizational role. Default: <code>"developer"</code>.</div></div>
+            </div>
+            <div class="tabs"><div class="tab act" onclick="stab(this,'d1','req')">Request</div></div>
+            <div class="tab-p act" id="d1-req"><div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{ <span class="tk">"name"</span>: <span class="ts">"Priya Sharma"</span>, <span class="tk">"email"</span>: <span class="ts">"priya@company.com"</span>, <span class="tk">"team"</span>: <span class="ts">"ml"</span> }</code></pre></div></div>
+            <div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div>
+          </div>
+        </div>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-g">GET</span><span class="ep-path">/api/v1/developers</span><span class="ep-sum">List developers</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <div class="params">
+              <div class="param"><div><div class="pname">team</div><div class="ptype">string | null</div></div><div class="pdesc">Filter by team name.</div></div>
+              <div class="param"><div><div class="pname">active_only</div><div class="ptype">boolean</div></div><div class="pdesc">Only return active developers. Default: <code>true</code>.</div></div>
+            </div>
+            <div class="rcodes"><span class="rc r2">200 OK</span></div>
+          </div>
+        </div>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-d">DELETE</span><span class="ep-path">/api/v1/developers/{dev_id}</span><span class="ep-sum">Deactivate + revoke all keys</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <div class="adm adm-w"><div class="adm-title">⚠️ Destructive</div><p>Deactivates the developer and immediately revokes all their active API keys at the vendor level.</p></div>
+            <div class="params"><div class="param"><div><div class="pname">dev_id<span class="preq">required</span></div><div class="ptype">path · string</div></div><div class="pdesc">The developer's ID.</div></div></div>
+            <div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div>
+          </div>
+        </div>
+
+        <h2 id="sec-keys">Keys</h2>
+        <div class="ep open">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-p">POST</span><span class="ep-path">/api/v1/keys/provision</span><span class="ep-sum">⚡ Provision a real vendor API key</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <p>The <strong>core endpoint.</strong> Creates a scoped vendor project/workspace and provisions a real API key. The key is returned exactly once.</p>
+            <div class="adm adm-d"><div class="adm-title">🔑 One-Time Display</div><p>The <code>api_key</code> is shown <strong>exactly once</strong>. Copy it immediately — it's never stored in full by KeyGate.</p></div>
+            <h3>Request Body</h3>
+            <div class="params">
+              <div class="param"><div><div class="pname">developer_id<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc">The developer to provision the key for.</div></div>
+              <div class="param"><div><div class="pname">vendor<span class="preq">required</span></div><div class="ptype">string</div></div><div class="pdesc"><code>openai</code>, <code>anthropic</code>, <code>azure_openai</code>, <code>google_vertex</code></div></div>
+              <div class="param"><div><div class="pname">budget_limit_usd</div><div class="ptype">number</div></div><div class="pdesc">Max spend in USD. Default: <code>50.0</code>.</div></div>
+              <div class="param"><div><div class="pname">rate_limit_rpm</div><div class="ptype">integer</div></div><div class="pdesc">Requests per minute cap. Default: <code>60</code>.</div></div>
+              <div class="param"><div><div class="pname">expires_in_days</div><div class="ptype">integer</div></div><div class="pdesc">Key TTL in days. Default: <code>90</code>.</div></div>
+              <div class="param"><div><div class="pname">models_allowed</div><div class="ptype">string[] | null</div></div><div class="pdesc">Restrict to specific models e.g. <code>["gpt-4","gpt-4o"]</code>.</div></div>
+              <div class="param"><div><div class="pname">description</div><div class="ptype">string</div></div><div class="pdesc">Human-readable note for the audit trail.</div></div>
+            </div>
+            <div class="tabs"><div class="tab act" onclick="stab(this,'k1','req')">Request</div><div class="tab" onclick="stab(this,'k1','res')">Response 200</div></div>
+            <div class="tab-p act" id="k1-req"><div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{
+  <span class="tk">"developer_id"</span>: <span class="ts">"dev-abc123"</span>,
+  <span class="tk">"vendor"</span>: <span class="ts">"openai"</span>,
+  <span class="tk">"budget_limit_usd"</span>: <span class="tn">100</span>,
+  <span class="tk">"rate_limit_rpm"</span>: <span class="tn">120</span>,
+  <span class="tk">"expires_in_days"</span>: <span class="tn">90</span>,
+  <span class="tk">"models_allowed"</span>: [<span class="ts">"gpt-4"</span>, <span class="ts">"gpt-4o"</span>],
+  <span class="tk">"description"</span>: <span class="ts">"GPT-4 for ML experiments"</span>
+}</code></pre></div></div>
+            <div class="tab-p" id="k1-res"><div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{
+  <span class="tk">"key_id"</span>: <span class="ts">"key-xyz789"</span>,
+  <span class="tk">"vendor"</span>: <span class="ts">"openai"</span>,
+  <span class="tk">"api_key"</span>: <span class="ts">"sk-proj-..."</span>,
+  <span class="tk">"key_hint"</span>: <span class="ts">"sk-proj-...7xKm"</span>,
+  <span class="tk">"project_name"</span>: <span class="ts">"keygate-ml-priya-a3f2c1"</span>,
+  <span class="tk">"budget_limit_usd"</span>: <span class="tn">100</span>,
+  <span class="tk">"expires_at"</span>: <span class="ts">"2026-06-22T08:00:00+00:00"</span>,
+  <span class="tk">"instructions"</span>: {
+    <span class="tk">"base_url"</span>: <span class="ts">"https://api.openai.com/v1"</span>,
+    <span class="tk">"auth_header"</span>: <span class="ts">"Authorization: Bearer &lt;your-key&gt;"</span>
+  }
+}</code></pre></div></div>
+            <div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div>
+          </div>
+        </div>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-g">GET</span><span class="ep-path">/api/v1/keys</span><span class="ep-sum">List issued keys (metadata only)</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <p>Returns key metadata. Full key values are <strong>never</strong> included.</p>
+            <div class="params">
+              <div class="param"><div><div class="pname">vendor</div><div class="ptype">string | null</div></div><div class="pdesc">Filter by vendor.</div></div>
+              <div class="param"><div><div class="pname">developer_id</div><div class="ptype">string | null</div></div><div class="pdesc">Filter by developer.</div></div>
+              <div class="param"><div><div class="pname">status</div><div class="ptype">string</div></div><div class="pdesc">Filter by status. Default: <code>"active"</code>.</div></div>
+            </div>
+            <div class="rcodes"><span class="rc r2">200 OK</span></div>
+          </div>
+        </div>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-p">POST</span><span class="ep-path">/api/v1/keys/{key_id}/revoke</span><span class="ep-sum">Revoke a key immediately</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body"><p>Calls the vendor API to delete/disable the key, then marks it revoked locally. Revocation is <strong>immediate</strong> at the vendor level.</p><div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div></div>
+        </div>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-p">POST</span><span class="ep-path">/api/v1/keys/{key_id}/rotate</span><span class="ep-sum">Rotate — revoke old, provision new</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body"><p>Atomically revokes the existing key and provisions a fresh one for the same developer and vendor. Response identical to <code>POST /keys/provision</code>.</p><div class="rcodes"><span class="rc r2">200 OK</span><span class="rc r4">422 Validation Error</span></div></div>
+        </div>
+
+        <h2 id="sec-audit">Audit &amp; System</h2>
+        <div class="ep">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-g">GET</span><span class="ep-path">/api/v1/audit</span><span class="ep-sum">Query the audit log</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <p>Immutable log of all provisioning, revocation, and configuration events.</p>
+            <div class="params">
+              <div class="param"><div><div class="pname">limit</div><div class="ptype">integer (max 500)</div></div><div class="pdesc">Number of events. Default: <code>50</code>.</div></div>
+              <div class="param"><div><div class="pname">action</div><div class="ptype">string | null</div></div><div class="pdesc">Filter by action type, e.g. <code>key.provision</code>.</div></div>
+            </div>
+            <div class="rcodes"><span class="rc r2">200 OK</span></div>
+          </div>
+        </div>
+        <div class="ep" id="sec-health">
+          <div class="ep-hd" onclick="toggleEp(this)"><span class="ep-m em-g">GET</span><span class="ep-path">/health</span><span class="ep-sum">Health check — no auth required</span><span class="ep-arr">▾</span></div>
+          <div class="ep-body">
+            <p>Liveness probe for load balancers and container orchestrators.</p>
+            <div class="cb"><div class="cb-hd"><span class="cb-lang">json</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>{ <span class="tk">"status"</span>: <span class="ts">"healthy"</span>, <span class="tk">"service"</span>: <span class="ts">"keygate"</span>, <span class="tk">"version"</span>: <span class="ts">"0.1.0"</span> }</code></pre></div>
+            <div class="rcodes"><span class="rc r2">200 OK</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- TOC -->
+    <nav class="doc-toc">
+      <div class="doc-toc-title">On this page</div>
+      <a href="#auth-sec">Authentication</a>
+      <a href="#sec-auth">Auth Endpoints</a>
+      <a href="#sec-vendors">Vendors</a>
+      <a href="#sec-devs">Developers</a>
+      <a href="#sec-keys">Keys</a>
+      <a href="#sec-audit">Audit &amp; System</a>
+    </nav>
+  </div>
+</div><!-- /page-docs -->
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━
+     GUIDE PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page" id="page-guide">
+  <section class="sec">
+    <div class="sec-title">Quick Start</div>
+    <div class="sec-sub">Get KeyGate running in under 5 minutes.</div>
+    <div >
+      <div class="steps">
+        <div class="step-item">
+          <div class="snum">1</div>
+          <div class="sbody">
+            <h4>Clone and configure</h4>
+            <p>Clone the repository and copy the example environment file.</p>
+            <div class="cb" style="margin-top:12px"><div class="cb-hd"><span class="cb-lang">bash</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>git clone https://github.com/your-org/keygate.git
+cd keygate && cp .env.example .env</code></pre></div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="snum">2</div>
+          <div class="sbody">
+            <h4>Edit .env with required values</h4>
+            <div class="cb" style="margin-top:12px"><div class="cb-hd"><span class="cb-lang">bash</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>SECRET_KEY=$(openssl rand -hex 32)
+ADMIN_EMAIL=admin@yourcompany.com
+ADMIN_PASSWORD=&lt;strong-password&gt;
+DB_PASSWORD=&lt;strong-password&gt;
+OPENAI_ADMIN_KEY=sk-admin-...</code></pre></div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="snum">3</div>
+          <div class="sbody">
+            <h4>Start the stack</h4>
+            <div class="cb" style="margin-top:12px"><div class="cb-hd"><span class="cb-lang">bash</span><button class="cb-copy" onclick="cp(this)">Copy</button></div><pre><code>docker compose up -d
+<span class="tc"># Dashboard → http://localhost:3000</span>
+<span class="tc"># API docs  → http://localhost:8000/docs</span></code></pre></div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="snum">4</div>
+          <div class="sbody">
+            <h4>Configure a vendor &amp; provision your first key</h4>
+            <p>Log in, add your vendor admin key, register a developer, click <strong>Provision Key</strong>. Copy the key — it's shown exactly once.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-top:44px;font-size:20px;font-weight:700">Configuration Reference</h2>
+      <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:16px">
+        <table class="tbl">
+          <thead><tr><th>Variable</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>DATABASE_URL</code></td><td><span class="badge ba">Yes</span></td><td>PostgreSQL connection string</td></tr>
+            <tr><td><code>SECRET_KEY</code></td><td><span class="badge ba">Yes</span></td><td>JWT signing key (openssl rand -hex 32)</td></tr>
+            <tr><td><code>ADMIN_EMAIL</code></td><td><span class="badge ba">Yes</span></td><td>Initial admin email</td></tr>
+            <tr><td><code>ADMIN_PASSWORD</code></td><td><span class="badge ba">Yes</span></td><td>Initial admin password</td></tr>
+            <tr><td><code>OPENAI_ADMIN_KEY</code></td><td><span class="badge bg" style="color:#166534">No</span></td><td>OpenAI org admin API key</td></tr>
+            <tr><td><code>ANTHROPIC_ADMIN_KEY</code></td><td><span class="badge bg" style="color:#166534">No</span></td><td>Anthropic admin API key</td></tr>
+            <tr><td><code>AZURE_SUBSCRIPTION_ID</code></td><td><span class="badge bg" style="color:#166534">No</span></td><td>Azure subscription ID</td></tr>
+            <tr><td><code>GCP_PROJECT_ID</code></td><td><span class="badge bg" style="color:#166534">No</span></td><td>Google Cloud project ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-top:44px;font-size:20px;font-weight:700">Deployment Options</h2>
+      <div class="guide-grid" style="margin-top:16px">
+        <a class="gc"><div class="gc-icon">🐳</div><h3>Docker Compose</h3><p>One command to run the full stack with Postgres and Nginx included.</p><div class="gc-tag">Recommended</div></a>
+        <a class="gc"><div class="gc-icon">🟠</div><h3>AWS ECS + RDS</h3><p>ECS services backed by RDS PostgreSQL with Application Load Balancer for HTTPS.</p><div class="gc-tag">Cloud</div></a>
+        <a class="gc"><div class="gc-icon">🔵</div><h3>GCP Cloud Run</h3><p>Serverless containers with Cloud SQL. Perfect for variable load workloads.</p><div class="gc-tag">Cloud</div></a>
+        <a class="gc"><div class="gc-icon">⚙️</div><h3>Kubernetes</h3><p>Kubernetes manifests included. Helm chart on roadmap for v0.2.0.</p><div class="gc-tag">K8s</div></a>
+      </div>
+    </div>
+  </section>
+</div><!-- /page-guide -->
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━
+     CHANGELOG PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page" id="page-changelog">
+  <section class="sec">
+    <div class="sec-title">Changelog</div>
+    <div class="sec-sub">All notable changes to KeyGate are documented here.</div>
+    <div style="max-width:720px">
+      <div class="cl-item">
+        <div class="cl-date"><div class="cl-ver">v0.1.0</div><div class="cl-d">Mar 2026</div></div>
+        <div class="cl-body">
+          <h4>Initial Release 🎉</h4>
+          <span class="clt cln">NEW</span><span class="clt cln">NEW</span><span class="clt cln">NEW</span>
+          <ul style="margin-top:12px;color:var(--text2);font-size:14px;line-height:2;padding-left:18px">
+            <li>OpenAI provisioner — Project + Service Account per developer</li>
+            <li>Anthropic provisioner — Workspace + API Key per developer</li>
+            <li>Azure OpenAI provisioner — Cognitive Services resource per developer</li>
+            <li>Google Vertex AI — Service Account + IAM binding per developer</li>
+            <li>Full audit log with actor, timestamp, event details</li>
+            <li>JWT authentication with configurable expiry</li>
+            <li>Key rotation (revoke old + provision new atomically)</li>
+            <li>Workspace and team management</li>
+            <li>Docker Compose production stack</li>
+            <li>React dashboard frontend</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-date"><div class="cl-ver" style="background:rgba(129,140,248,.1);color:var(--accent2);border-color:rgba(129,140,248,.2)">v0.2.0</div><div class="cl-d">Roadmap</div></div>
+        <div class="cl-body">
+          <h4>Upcoming</h4>
+          <ul style="margin-top:12px;color:var(--text2);font-size:14px;line-height:2;padding-left:18px">
+            <li>Prometheus <code>/metrics</code> endpoint</li>
+            <li>SSO/SAML integration (Okta, Auth0, Google Workspace)</li>
+            <li>Self-service developer portal with approval flows</li>
+            <li>Spend tracking via vendor usage APIs</li>
+            <li>Slack/Teams notifications on key events</li>
+            <li>Helm chart for Kubernetes</li>
+            <li>CLI: <code>keygate provision --vendor openai --dev priya</code></li>
+            <li>Webhook support for key lifecycle events</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div><!-- /page-changelog -->
+
+</main>
+</div><!-- /layout -->
+
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="fb">
+    <div class="fb-logo">🔑 KeyGate</div>
+    <p>Open-source LLM API key management for teams. Provision scoped, trackable, revocable vendor keys — without a proxy.</p>
+    <div style="margin-top:12px;display:flex;gap:10px"><span class="badge ba">Apache 2.0</span><span class="badge ba">v0.1.0</span></div>
+  </div>
+  <div class="fc-col">
+    <h4>Documentation</h4>
+    <a onclick="showPage('docs')">API Reference</a>
+    <a onclick="showPage('guide')">Quick Start</a>
+    <a onclick="showPage('guide')">Deployment</a>
+    <a onclick="showPage('guide')">Configuration</a>
+  </div>
+  <div class="fc-col">
+    <h4>Vendors</h4>
+    <a href="#">OpenAI Setup</a>
+    <a href="#">Anthropic Setup</a>
+    <a href="#">Azure OpenAI</a>
+    <a href="#">Google Vertex</a>
+  </div>
+  <div class="fc-col">
+    <h4>Community</h4>
+    <a href="#">GitHub</a>
+    <a href="#">Discussions</a>
+    <a href="#">Contributing</a>
+    <a href="#">Security Policy</a>
+  </div>
+  
+</footer>
+
+<div class="footer-bot">
+  
+  <span>Built with ❤️ by <a href="https://github.com/Aakashbhardwaj27"> Aakash Bhardwaj</a></span>
+  <span>© 2026 KeyGate Contributors · Apache 2.0 License</span>
+</div>
+
+
+<!-- SEARCH MODAL -->
+<div class="smodal" id="smodal" onclick="if(event.target===this)closeSearch()">
+  <div class="sbox">
+    <div class="sinput">
+      <span style="font-size:18px;color:var(--text3)">⌕</span>
+      <input type="text" id="sinput" placeholder="Search documentation…" oninput="filterSearch(this.value)"/>
+      <kbd style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 7px;cursor:pointer" onclick="closeSearch()">Esc</kbd>
+    </div>
+    <div class="sresults" id="sresults">
+      <div class="sri" onclick="goR('docs','sec-keys')"><div class="sri-t">POST /api/v1/keys/provision — Provision a vendor API key</div><div class="sri-p">API Reference › Keys</div></div>
+      <div class="sri" onclick="goR('docs','sec-auth')"><div class="sri-t">POST /api/v1/auth/login — Get JWT access token</div><div class="sri-p">API Reference › Auth</div></div>
+      <div class="sri" onclick="goR('docs','sec-vendors')"><div class="sri-t">POST /api/v1/vendors/configure — Store vendor credentials</div><div class="sri-p">API Reference › Vendors</div></div>
+      <div class="sri" onclick="goR('docs','sec-devs')"><div class="sri-t">POST /api/v1/developers — Register a developer</div><div class="sri-p">API Reference › Developers</div></div>
+      <div class="sri" onclick="goR('docs','sec-keys')"><div class="sri-t">POST /api/v1/keys/{id}/revoke — Revoke a key immediately</div><div class="sri-p">API Reference › Keys</div></div>
+      <div class="sri" onclick="goR('docs','sec-keys')"><div class="sri-t">POST /api/v1/keys/{id}/rotate — Rotate a key</div><div class="sri-p">API Reference › Keys</div></div>
+      <div class="sri" onclick="goR('guide','')"><div class="sri-t">Quick Start — Docker Compose setup guide</div><div class="sri-p">Guide › Getting Started</div></div>
+      <div class="sri" onclick="goR('guide','')"><div class="sri-t">Configuration — Environment variables reference</div><div class="sri-p">Guide › Configuration</div></div>
+      <div class="sri" onclick="goR('home','')"><div class="sri-t">Supported Vendors — OpenAI, Anthropic, Azure, GCP</div><div class="sri-p">Overview</div></div>
+      <div class="sri" onclick="goR('changelog','')"><div class="sri-t">Changelog — v0.1.0 initial release</div><div class="sri-p">Changelog</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* PAGE ROUTING */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('act'));
+  document.getElementById('page-'+id).classList.add('act');
+  document.querySelectorAll('.hdr-nav a').forEach(a=>a.classList.remove('act'));
+  const el=document.getElementById('nav-'+id);
+  if(el) el.classList.add('act');
+  window.scrollTo(0,0);
+  closeSidebar();
+}
+function navDoc(id){
+  showPage('docs');
+  setTimeout(()=>{const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);
+}
+
+/* THEME */
+function toggleTheme(){
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+    localStorage.setItem('kg-theme', dark ? 'light' : 'dark');
+    updateLogos(dark ? 'light' : 'dark');
+  }
+  
+  function updateLogos(theme) {
+    const src = theme === 'dark' ? './logo.svg' : './logo-light.svg';
+    document.querySelectorAll('.theme-logo').forEach(img => img.src = src);
+  }
+  
+  // Restore on load — replace your existing IIFE with this:
+  (function(){
+    const s = localStorage.getItem('kg-theme');
+    if(s){
+      document.documentElement.setAttribute('data-theme', s);
+      document.getElementById('theme-btn').textContent = s === 'dark' ? '🌙' : '☀️';
+      updateLogos(s);
+    }
+  })();
+
+/* SIDEBAR */
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+
+/* ENDPOINTS */
+function toggleEp(h){h.closest('.ep').classList.toggle('open');}
+
+/* TABS */
+function stab(tab,g,n){
+  const body=tab.closest('.ep-body')||tab.closest('.doc-body');
+  tab.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+  tab.classList.add('act');
+  body.querySelectorAll(`[id^="${g}-"]`).forEach(p=>p.classList.toggle('act',p.id===`${g}-${n}`));
+}
+
+/* COPY */
+function cp(btn){
+  const pre=btn.closest('.cb').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    btn.textContent='✓ Copied';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},2000);
+  });
+}
+
+/* SEARCH */
+function openSearch(){document.getElementById('smodal').classList.add('show');setTimeout(()=>document.getElementById('sinput').focus(),50);}
+function closeSearch(){document.getElementById('smodal').classList.remove('show');document.getElementById('sinput').value='';filterSearch('');}
+function filterSearch(q){
+  document.querySelectorAll('.sri').forEach(i=>{
+    i.style.display=i.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+function goR(page,section){closeSearch();showPage(page);if(section)setTimeout(()=>{const el=document.getElementById(section);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},100);}
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();}
+  if(e.key==='Escape')closeSearch();
+});
+
+/* TOC ACTIVE */
+document.addEventListener('scroll',()=>{
+  document.querySelectorAll('.doc-toc a').forEach(a=>{
+    const id=a.getAttribute('href').slice(1);
+    const el=document.getElementById(id);
+    if(!el)return;
+    const r=el.getBoundingClientRect();
+    a.classList.toggle('act',r.top<120&&r.bottom>0);
+  });
+},{passive:true});
+
+/* SCROLL REVEAL */
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});
+},{threshold:0.06});
+document.querySelectorAll('.feat-card,.gc,.cl-item,.step-item').forEach(el=>{
+  el.style.opacity='0';el.style.transform='translateY(20px)';
+  el.style.transition='opacity .4s ease,transform .4s ease';
+  io.observe(el);
+});
+</script>
+</body>
+</html>

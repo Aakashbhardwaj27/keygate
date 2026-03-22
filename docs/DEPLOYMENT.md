@@ -10,7 +10,7 @@ Any Linux server with Docker and Docker Compose installed will work. Minimum spe
 
 ```bash
 # Clone
-git clone https://github.com/your-org/keygate.git
+git clone https://github.com/Aakashbhardwaj27/keygate.git
 cd keygate
 
 # Configure

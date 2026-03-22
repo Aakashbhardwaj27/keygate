@@ -14,7 +14,7 @@ Thanks for your interest in contributing! Here's how to get started.
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-org/keygate.git
+git clone https://github.com/Aakashbhardwaj27/keygate.git
 cd keygate
 
 # ── Backend ──

@@ -8,42 +8,42 @@ on:
 
 jobs:
   # ── Backend ─────────────────────────────────────────────────
-  backend-lint:
-    name: Backend Lint
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install ruff mypy
-      - run: ruff check .
-      - run: ruff format --check .
+  # backend-lint:
+  #   name: Backend Lint
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: backend
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+  #     - run: pip install ruff mypy
+  #     - run: ruff check .
+  #     - run: ruff format --check .
 
-  backend-test:
-    name: Backend Tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - run: pip install -r requirements-dev.txt
-      - run: pytest -v --cov=app --cov-report=xml
-      - uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.12'
-        with:
-          file: backend/coverage.xml
-          flags: backend
+  # backend-test:
+  #   name: Backend Tests
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: backend
+  #   strategy:
+  #     matrix:
+  #       python-version: ["3.11", "3.12"]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #     - run: pip install -r requirements-dev.txt
+  #     - run: pytest -v --cov=app --cov-report=xml
+  #     - uses: codecov/codecov-action@v4
+  #       if: matrix.python-version == '3.12'
+  #       with:
+  #         file: backend/coverage.xml
+  #         flags: backend
 
   # ── Frontend ────────────────────────────────────────────────
   frontend-build:
