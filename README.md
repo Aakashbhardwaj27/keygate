@@ -31,6 +31,8 @@ Your org has one OpenAI key shared across 100+ developers. No audit trail, no pe
 
 ## The Solution
 
+<img src="./docs/banner.jpg"  />
+
 KeyGate uses vendor Admin APIs to create **scoped projects/workspaces per developer** and issue real API keys within them. Developers talk directly to the vendor — no proxy, no added latency, no SDK changes.
 
 ```
